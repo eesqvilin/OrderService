@@ -39,6 +39,19 @@ From a security standpoint running a container as root widens the damage an atta
 
 ## Part 3 - Github Actions 
 
+- During testing for first job the Format Code step failed with message: 
+
+```
+Run dotnet format --verify-no-changes
+/home/runner/work/OrderService/OrderService/Program.cs(1,50): error ENDOFLINE: Fix end of line marker. Replace 2 characters with '\r\n\r\n'. [/home/runner/work/OrderService/OrderService/OrderService.csproj]
+/home/runner/work/OrderService/OrderService/Program.cs(3,27): error ENDOFLINE: Fix end of line marker. Replace 2 characters with '\r\n\r\n'. [/home/runner/work/OrderService/OrderService/OrderService.csproj]
+/home/runner/work/OrderService/OrderService/Program.cs(5,36): error ENDOFLINE: Fix end of line marker. Replace 1 characters with '\r\n'. [/home/runner/work/OrderService/OrderService/OrderService.csproj]
+/home/runner/work/OrderService/OrderService/Program.cs(6,69): error ENDOFLINE: Fix end of line marker. Replace 1 characters with '\r\n'. [/home/runner/work/OrderService/OrderService/OrderService.csproj]
+/home/runner/work/OrderService/OrderService/Program.cs(7,90): error ENDOFLINE: Fix end of line marker. Replace 3 characters with '\r\n\r\n\r\n'. [/home/runner/work/OrderService/OrderService/OrderService.csproj]
+Error: Process completed with exit code 2.
+```
+Performed a search in the codebase for "ENDOFLINE" and found it on the .editorcofig file created early in the project.  Upon research found that there different values to this depending on the OS architecture (lf matching Mac and Linux). Ran `grep -n end_of_line .editorconfig` and found it on line 21.  Will proceed to change end_of_line value to lf to match local and container architecture.  Ran `dotnet format` to rerun and apply changes. 
+
 ## Part 4 - Deploy Step
 
 ## Part 5 - Written Section 

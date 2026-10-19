@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  format-and-test:
+      name: Format and Test
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Set up .NET
+          uses: actions/setup-dotnet@v4
+          with:
+            dotnet-version: 8.0.x
+          
+        - name: Format Code
+          run: dotnet format --verify-no-changes
+        - name: Build
+          run: dotnet build -c Release 
+        - name: Test
+          run: dotnet test -c Release --no-build
+        - name: Check Vulnerable Packages
+          run: dotnet list package  --vulnerable --include-transitive

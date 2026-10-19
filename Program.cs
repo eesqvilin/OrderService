@@ -8,4 +8,3 @@ app.MapGet("/version", () => Environment.GetEnvironmentVariable("APP_VERSION") ?
 
 
 app.Run();
-

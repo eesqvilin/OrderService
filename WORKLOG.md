@@ -33,6 +33,9 @@ Total: 1 (UNKNOWN: 0, LOW: 0, MEDIUM: 0, HIGH: 1, CRITICAL: 0)
 ```
 Will proceed to update the package to fixed version specified during the scan using `dotnet add package Newtonsoft.Json --version 13.0.1`
 
+- Why do we care if the container runs as root and what did you have to change to make USER appuser actually work?
+
+From a security standpoint running a container as root widens the damage an attack can do and exposes the application (e.g. vulnerable dependencies).  As root with full privilege can modify, install tools, read the container files and access the host.  RUnning as a non-root user applies the principle of least privilege and limits the surface in of an attack.  To make `USER appsuser` work: I created the user using `adduser` command and then switch it using `USER` command. As `adduser` needs root privileges the order matters for example we must perform all root privileged operations before switching to the non-root user. 
 
 ## Part 3 - Github Actions 
 

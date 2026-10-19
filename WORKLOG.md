@@ -52,6 +52,8 @@ Error: Process completed with exit code 2.
 ```
 Performed a search in the codebase for "ENDOFLINE" and found it on the .editorcofig file created early in the project.  Upon research found that there different values to this depending on the OS architecture (lf matching Mac and Linux). Ran `grep -n end_of_line .editorconfig` and found it on line 21.  Will proceed to change end_of_line value to lf to match local and container architecture.  Ran `dotnet format` to rerun and apply changes. 
 
+- Using https://github.com/marketplace for actions versioning. 
+
 ## Part 4 - Deploy Step
 
 ## Part 5 - Written Section 

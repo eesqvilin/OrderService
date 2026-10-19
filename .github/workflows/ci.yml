@@ -7,21 +7,50 @@ on:
     branches: [main]
 
 jobs:
-  format-and-test:
-      name: Format and Test
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - name: Set up .NET
-          uses: actions/setup-dotnet@v4
-          with:
-            dotnet-version: 8.0.x
+  format-build-and-test:
+    name: Format and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Format Code
+        run: dotnet format --verify-no-changes
+
+      - name: Build
+        run: dotnet build -c Release
+      - name: Test
+        run: dotnet test -c Release --no-build
+
+      - name: Check Vulnerable Packages
+        run: dotnet list package  --vulnerable --include-transitive
+
+  docker-build-and-scan:
+    name: Docker Build and Scan
+    runs-on: ubuntu-latest
+    needs: format-build-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v4 # https://github.com/docker/setup-buildx-action
+
+      - name: Build Image
+        uses: docker/build-push-action@v7 # https://github.com/marketplace/actions/build-and-push-docker-images
+        with:
+          context: .
+          push: false
+          load: true
+          tags: orderservice
+
+      - name: Scan Image (Trivy)
+        uses: aquasecurity/trivy-action@v0.36.0 # https://github.com/marketplace/actions/aqua-security-trivy
+        with:
+          image-ref: orderservice
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: 1
           
-        - name: Format Code
-          run: dotnet format --verify-no-changes
-        - name: Build
-          run: dotnet build -c Release 
-        - name: Test
-          run: dotnet test -c Release --no-build
-        - name: Check Vulnerable Packages
-          run: dotnet list package  --vulnerable --include-transitive

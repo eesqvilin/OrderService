@@ -16,6 +16,23 @@
 
 - created `.gitignore` file to ignore non-required files. Used `ls -a` in the root folder to check on files.  
 
+-  Vulnerability found during trivy scan using command `trivy image orderservice:local`
+
+```
+app/OrderService.deps.json (dotnet-core)
+
+Total: 1 (UNKNOWN: 0, LOW: 0, MEDIUM: 0, HIGH: 1, CRITICAL: 0)
+
+┌─────────────────┬────────────────┬──────────┬────────┬───────────────────┬───────────────┬────────────────────────────────────────────────┐
+│     Library     │ Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │                     Title                      │
+├─────────────────┼────────────────┼──────────┼────────┼───────────────────┼───────────────┼────────────────────────────────────────────────┤
+│ Newtonsoft.Json │ CVE-2024-21907 │ HIGH     │ fixed  │ 9.0.1             │ 13.0.1        │ Improper Handling of Exceptional Conditions in │
+│                 │                │          │        │                   │               │ Newtonsoft.Json                                │
+│                 │                │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2024-21907     │
+└─────────────────┴────────────────┴──────────┴────────┴───────────────────┴───────────────┴────────────────────────────────────────────────┘
+```
+Will proceed to update the package to fixed version specified during the scan using `dotnet add package Newtonsoft.Json --version 13.0.1`
+
 
 ## Part 3 - Github Actions 
 

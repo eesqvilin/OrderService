@@ -1,3 +1,15 @@
-// Ignore build output directories
+# Ignore build output directories
 **/obj
 **/bin
+
+# Ignore version control files and editor settings
+.git
+.gitignore
+.vscode 
+
+# Ignore Docker-related files
+Dockerfile
+.dockerignore
+
+# Ignore markdown files
+*.md 

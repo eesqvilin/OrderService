@@ -14,6 +14,8 @@
 
 - Ref. https://hub.docker.com/r/microsoft/dotnet-aspnet and https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/docker/building-net-docker-images?view=aspnetcore-10.0 for image to be used.  Image `mcr.microsoft.com/dotnet/aspnet:8.0` will be used to match project requirements. 
 
+- created `.gitignore` file to ignore non-required files. Used `ls -a` in the root folder to check on files.  
+
 
 ## Part 3 - Github Actions 
 

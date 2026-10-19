@@ -52,8 +52,7 @@ Error: Process completed with exit code 2.
 ```
 Performed a search in the codebase for "ENDOFLINE" and found it on the .editorcofig file created early in the project.  Upon research found that there different values to this depending on the OS architecture (lf matching Mac and Linux). Ran `grep -n end_of_line .editorconfig` and found it on line 21.  Will proceed to change end_of_line value to lf to match local and container architecture.  Ran `dotnet format` to rerun and apply changes. 
 
-- job: Docker Build and Scan finished with exit code 1 in the Scan Image (Trivy) step. Although scanner is working is stoping the pipeline because of the failure. The Summary shows the 7 vulnerabilities are related to debian distros and the all are fixed already in newer versions of the package. First approach will be updating the packages using `apt-get update && apt-get install --only-upgrade -y perl-base` to update the package in the runtime stage of the Dockerfile.
-
+- job: Docker Build and Scan finished with exit code 1 in the Scan Image (Trivy) step. Although scanner is working is stoping the pipeline because of the failure. The Summary shows the 7 vulnerabilities are related to debian distros and the all are fixed already in newer versions of the package. 
 
   ```
   Report Summary
@@ -129,6 +128,7 @@ Performed a search in the codebase for "ENDOFLINE" and found it on the .editorco
   Error: Process completed with exit code 1.
 
   ```
+Solution approach will be updating the packages using `apt-get update && apt-get install --only-upgrade -y perl-base` to update the package in the runtime stage of the Dockerfile. Later can add `rm -rf var/lib/apt/list/*` to command to keep image clean.
 
 - Using https://github.com/marketplace for actions versioning. 
 

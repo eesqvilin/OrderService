@@ -52,7 +52,87 @@ Error: Process completed with exit code 2.
 ```
 Performed a search in the codebase for "ENDOFLINE" and found it on the .editorcofig file created early in the project.  Upon research found that there different values to this depending on the OS architecture (lf matching Mac and Linux). Ran `grep -n end_of_line .editorconfig` and found it on line 21.  Will proceed to change end_of_line value to lf to match local and container architecture.  Ran `dotnet format` to rerun and apply changes. 
 
+- job: Docker Build and Scan finished with exit code 1 in the Scan Image (Trivy) step. Although scanner is working is stoping the pipeline because of the failure. The Summary shows the 7 vulnerabilities are related to debian distros and the all are fixed already in newer versions of the package. First approach will be updating the packages using `apt-get update && apt-get install --only-upgrade -y perl-base` to update the package in the runtime stage of the Dockerfile.
+
+
+  ```
+  Report Summary
+  
+  ┌──────────────────────────────────────────────────────────────────────────────────┬─────────────┬─────────────────┬─────────┐
+  │                                      Target                                      │    Type     │ Vulnerabilities │ Secrets │
+  ├──────────────────────────────────────────────────────────────────────────────────┼─────────────┼─────────────────┼─────────┤
+  │ orderservice (debian 12.15)                                                      │   debian    │        7        │    -    │
+  ├──────────────────────────────────────────────────────────────────────────────────┼─────────────┼─────────────────┼─────────┤
+  │ app/OrderService.deps.json                                                       │ dotnet-core │        0        │    -    │
+  ├──────────────────────────────────────────────────────────────────────────────────┼─────────────┼─────────────────┼─────────┤
+  │ usr/share/dotnet/shared/Microsoft.AspNetCore.App/8.0.32/Microsoft.AspNetCore.Ap- │ dotnet-core │        0        │    -    │
+  │ p.deps.json                                                                      │             │                 │         │
+  ├──────────────────────────────────────────────────────────────────────────────────┼─────────────┼─────────────────┼─────────┤
+  │ usr/share/dotnet/shared/Microsoft.NETCore.App/8.0.32/Microsoft.NETCore.App.deps- │ dotnet-core │        0        │    -    │
+  │ .json                                                                            │             │                 │         │
+  └──────────────────────────────────────────────────────────────────────────────────┴─────────────┴─────────────────┴─────────┘
+  Legend:
+  - '-': Not scanned
+  
+  📣 Notices:
+    - Version 0.76.0 of Trivy is now available, current version is 0.70.0
+  
+  To suppress version checks, run Trivy scans with the --skip-version-check flag
+  
+  - '0': Clean (no security findings detected)
+  
+  
+  For OSS Maintainers: VEX Notice
+  --------------------------------
+  If you're an OSS maintainer and Trivy has detected vulnerabilities in your project that you believe are not actually exploitable, consider issuing a VEX (Vulnerability Exploitability eXchange) statement.
+  VEX allows you to communicate the actual status of vulnerabilities in your project, improving security transparency and reducing false positives for your users.
+  Learn more and start using VEX: https://trivy.dev/docs/v0.70/guide/supply-chain/vex/repo#publishing-vex-documents
+  
+  To disable this notice, set the TRIVY_DISABLE_VEX_NOTICE environment variable.
+  
+  
+  orderservice (debian 12.15)
+  ===========================
+  Total: 7 (HIGH: 4, CRITICAL: 3)
+  
+  ┌───────────┬────────────────┬──────────┬────────┬───────────────────┬──────────────────┬──────────────────────────────────────────────────────────────┐
+  │  Library  │ Vulnerability  │ Severity │ Status │ Installed Version │  Fixed Version   │                            Title                             │
+  ├───────────┼────────────────┼──────────┼────────┼───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+  │ perl-base │ CVE-2026-13221 │ CRITICAL │ fixed  │ 5.36.0-7+deb12u3  │ 5.36.0-7+deb12u4 │ perl: Perl: Incorrect regular expression processing via      │
+  │           │                │          │        │                   │                  │ large regular expressions                                    │
+  │           │                │          │        │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-13221                   │
+  │           ├────────────────┤          │        │                   │                  ├──────────────────────────────────────────────────────────────┤
+  │           │ CVE-2026-42496 │          │        │                   │                  │ perl-archive-tar: perl-archive-tar: Path traversal via       │
+  │           │                │          │        │                   │                  │ crafted symlinks allows arbitrary file access                │
+  │           │                │          │        │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-42496                   │
+  │           ├────────────────┤          │        │                   │                  ├──────────────────────────────────────────────────────────────┤
+  │           │ CVE-2026-8376  │          │        │                   │                  │ perl: Perl: Heap buffer overflow when compiling regular      │
+  │           │                │          │        │                   │                  │ expressions on 32-bit builds...                              │
+  │           │                │          │        │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-8376                    │
+  │           ├────────────────┼──────────┤        │                   │                  ├──────────────────────────────────────────────────────────────┤
+  │           │ CVE-2026-42497 │ HIGH     │        │                   │                  │ perl-Archive-Tar: perl-Archive-Tar: Arbitrary file           │
+  │           │                │          │        │                   │                  │ modification via crafted hardlinks during archive extraction │
+  │           │                │          │        │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-42497                   │
+  │           ├────────────────┤          │        │                   │                  ├──────────────────────────────────────────────────────────────┤
+  │           │ CVE-2026-48962 │          │        │                   │                  │ perl-IO-Compress: perl-IO-Compress: Arbitrary code execution │
+  │           │                │          │        │                   │                  │ via attacker-controlled output glob                          │
+  │           │                │          │        │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-48962                   │
+  │           ├────────────────┤          │        │                   │                  ├──────────────────────────────────────────────────────────────┤
+  │           │ CVE-2026-57432 │          │        │                   │                  │ perl: Perl: Information disclosure via integer overflow in   │
+  │           │                │          │        │                   │                  │ pack/unpack operations                                       │
+  │           │                │          │        │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-57432                   │
+  │           ├────────────────┤          │        │                   │                  ├──────────────────────────────────────────────────────────────┤
+  │           │ CVE-2026-57433 │          │        │                   │                  │ Storable: Storable: Denial of Service via signed integer     │
+  │           │                │          │        │                   │                  │ overflow in deserialization                                  │
+  │           │                │          │        │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-57433                   │
+  └───────────┴────────────────┴──────────┴────────┴───────────────────┴──────────────────┴──────────────────────────────────────────────────────────────┘
+  Error: Process completed with exit code 1.
+
+  ```
+
 - Using https://github.com/marketplace for actions versioning. 
+
+
 
 ## Part 4 - Deploy Step
 

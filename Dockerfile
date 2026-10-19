@@ -12,6 +12,7 @@ RUN dotnet publish -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 RUN adduser --disabled-password --gecos "" appuser
+RUN apt-get update && apt-get install --only-upgrade -y perl-base
 COPY --from=build /app/publish .
 USER appuser
 EXPOSE 8080

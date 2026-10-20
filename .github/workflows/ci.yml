@@ -6,9 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  DOCKER_IMAGE: ghcr.io/${{ github.repository_owner }}/orderservice:${{ github.sha }} 
+ 
 jobs:
   format-build-and-test:
-    name: Format and Test
+    name: Format, Build and Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +34,9 @@ jobs:
   docker-build-and-scan:
     name: Docker Build and Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     needs: format-build-and-test
     steps:
       - uses: actions/checkout@v4
@@ -44,13 +50,24 @@ jobs:
           context: .
           push: false
           load: true
-          tags: orderservice
+          tags: ${{ env.DOCKER_IMAGE }}
 
       - name: Scan Image (Trivy)
         uses: aquasecurity/trivy-action@v0.36.0 # https://github.com/marketplace/actions/aqua-security-trivy
         with:
-          image-ref: orderservice
+          image-ref: ${{ env.DOCKER_IMAGE }}
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: 1
-          
+
+      - name: Login to GHCR
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: docker/login-action@v4 # https://github.com/marketplace/actions/docker-login
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }} #references user who triggered the workflow
+          password: ${{ secrets.GITHUB_TOKEN }} #uses the GitHub token for authentication
+
+      - name: Push Image to GHCR
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: docker push ${{ env.DOCKER_IMAGE }}

@@ -6,11 +6,21 @@ on:
   pull_request:
     branches: [main]
 
+# Trigger workflow manually with optional redeploy_only input
+  workflow_dispatch:
+    inputs: 
+      redeploy_only:
+        description: 'Redeploy Only'
+        type: boolean
+        default: false 
+
+
 env:
   DOCKER_IMAGE: ghcr.io/${{ github.repository_owner }}/orderservice:${{ github.sha }} 
  
 jobs:
   format-build-and-test:
+    if: ${{!inputs.redeploy_only}}
     name: Format, Build and Test
     runs-on: ubuntu-latest
     steps:
@@ -32,6 +42,7 @@ jobs:
         run: dotnet list package  --vulnerable --include-transitive
 
   docker-build-and-scan:
+    if: ${{!inputs.redeploy_only}}
     name: Docker Build and Scan
     runs-on: ubuntu-latest
     permissions:

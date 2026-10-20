@@ -132,7 +132,10 @@ Solution approach will be updating the packages using `apt-get update && apt-get
 
 - Using https://github.com/marketplace for actions versioning. 
 
+- Looking for a step to implement caching found out the formatting was taking 38s. This was due to a decision made to use the implicit restore made by the formatting.  In order to pinpoint the slow process, added `dotnet restore` command improved the performance of the steps to 10 seconds. 
+
 - Referred to https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax for syntax.
+
 
 
 ## Part 4 - Deploy Step

@@ -6,18 +6,17 @@ on:
   pull_request:
     branches: [main]
 
-# Trigger workflow manually with optional redeploy_only input
+  # Trigger workflow manually with optional redeploy_only input
   workflow_dispatch:
-    inputs: 
+    inputs:
       redeploy_only:
-        description: 'Redeploy Only'
+        description: "Redeploy Only"
         type: boolean
-        default: false 
-
+        default: false
 
 env:
-  DOCKER_IMAGE: ghcr.io/${{ github.repository_owner }}/orderservice:${{ github.sha }} 
- 
+  DOCKER_IMAGE: ghcr.io/${{ github.repository_owner }}/orderservice:${{ github.sha }}
+
 jobs:
   format-build-and-test:
     if: ${{!inputs.redeploy_only}}
@@ -30,11 +29,13 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Restore Dependencies
+        run: dotnet restore
       - name: Format Code
-        run: dotnet format --verify-no-changes
+        run: dotnet format --verify-no-changes --no-restore
 
       - name: Build
-        run: dotnet build -c Release
+        run: dotnet build -c Release 
       - name: Test
         run: dotnet test -c Release --no-build
 

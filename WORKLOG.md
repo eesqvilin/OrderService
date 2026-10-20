@@ -132,6 +132,7 @@ Solution approach will be updating the packages using `apt-get update && apt-get
 
 - Using https://github.com/marketplace for actions versioning. 
 
+- Referred to https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax for syntax.
 
 
 ## Part 4 - Deploy Step

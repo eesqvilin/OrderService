@@ -113,7 +113,7 @@ jobs:
             ${{ env.DOCKER_IMAGE }}
       - name: Verify Container Version is Correct
         run: |
-          ACTUAL_VERSION=$(curl --retry 5 --retry-connrefused --fail http://localhost:8080/version)
+          ACTUAL_VERSION=$(curl --retry 5 --retry-all-errors --fail http://localhost:8080/version)
           EXPECTED_VERSION=${{ github.sha }}
           if [ "$ACTUAL_VERSION" != "$EXPECTED_VERSION" ]; then
           echo "Version mismatch: expected $EXPECTED_VERSION, got $ACTUAL_VERSION"

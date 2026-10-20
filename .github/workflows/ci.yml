@@ -121,4 +121,5 @@ jobs:
           fi
           echo "Version verified: $ACTUAL_VERSION"
       - name: Show Container Logs
+        if: ${{ failure() }}
         run: docker logs orderservice

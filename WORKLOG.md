@@ -49,7 +49,7 @@ Solution approach will be updating the packages using `apt-get update && apt-get
 
 - first deploy run failed at the verification step with `curl: (56) Connection reset by peer`. Docker had published the port before the app inside was ready, and `--retry-connrefused` didn’t help because a reset isn’t a refused connection, so the retries never ran.
 
-- Deploy failure #2 (verification). After adding `--retry-all-errors`, the verify step still failed (curl exit 7): the first attempt got a connection reset, then every retry over ~31 seconds was refused, which means the container had started and then exited rather than being slow to start. My earlier theory was wrong. I couldn’t see why, because my docker logs step was missing if: failure() and was skipped after the failure, so I fixed that and added docker ps -a to see the exit status on the next run.
+My first deploy run failed at verification with curl: (56) connection reset, and a second run with `--retry-all-errors` still failed (exit 7, connection refused for ~31 seconds), which showed the container had started and then exited rather than being slow to start. My diagnostic docker logs step was missing if: failure() and had been skipped, so I fixed that, and the logs showed OrderService.dll missing from /app. Inspecting the pulled image with docker run --entrypoint ls showed /app was empty: the COPY --from=build /app/publish . line had been lost from the runtime stage, so the image contained no application, and BuildKit had silently skipped the whole build stage because nothing depended on it. The Trivy gate had passed on this image because there was nothing to scan, so “green scan” didn’t mean “good image.” After restoring the COPY, the pipeline went green.
 
 ## Part 5 - Written Section 
 

@@ -1,7 +1,18 @@
 ## CI Diagram
 
 ```mermaid
+---
+id: 23af7a34-f54f-4d44-bf4d-329a5449415b
+---
 flowchart LR
+
+subgraph Triggers[Triggers]
+    T1[push main] 
+    T2[PR main]
+    T3[workflow_dispatch]
+end
+
+
 
 subgraph J1[Format, Build and Test]
     S1[Format Check] --> S2[Build]
@@ -17,9 +28,11 @@ end
 
 subgraph J3[Deploy]
     SC1[Pull Image] --> SC2[Run Container]
-    SC2 --> [Verify Container Version]
+    SC2 --> SC3[Verify Container Version]
 end
-
+Triggers --> Gate{Manual Redeploy?}
+Gate -->|No| J1
+Gate -->|Yes| J3
 J1 --->|needs: format-build-and-test| J2
 J2 --->|needs: docker-build-and-scan| J3
 ```

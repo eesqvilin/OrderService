@@ -1,5 +1,8 @@
 # WORKLOG
 
+> [!NOTE] 
+> Observations and Notes (Parts 1-4)
+
 ## Part 1 - Scaffold Service  
 
 - Noted that the assesment requires NET 8 SDK.  The `brew install --cask dotnet-skd@8` pinned the latest version 10.0.402.  As a solution, the required version (8) was pinned using a global.json file using the following command:
@@ -47,9 +50,20 @@ Solution approach will be updating the packages using `apt-get update && apt-get
 
 - Wrote the deploy job to run only on main and only if no earlier job failed or was cancelled (!failure() && !cancelled()), since a plain always() would try to deploy after a failed scan, and since skipped jobs are allowed through, the manual redeploy path works when the build jobs are skipped. It pulls the SHA-tagged image from GHCR (no login needed because the package is public), replaces any existing container with docker rm -f, and verifies the deploy by comparing /version to the commit SHA instead of only checking that the endpoint responds, with retries for startup time and container logs printed on failure.
 
-- first deploy run failed at the verification step with `curl: (56) Connection reset by peer`. Docker had published the port before the app inside was ready, and `--retry-connrefused` didn’t help because a reset isn’t a refused connection, so the retries never ran.
-
 My first deploy run failed at verification with curl: (56) connection reset, and a second run with `--retry-all-errors` still failed (exit 7, connection refused for ~31 seconds), which showed the container had started and then exited rather than being slow to start. My diagnostic docker logs step was missing if: failure() and had been skipped, so I fixed that, and the logs showed OrderService.dll missing from /app. Inspecting the pulled image with docker run --entrypoint ls showed /app was empty: the COPY --from=build /app/publish . line had been lost from the runtime stage, so the image contained no application, and BuildKit had silently skipped the whole build stage because nothing depended on it. The Trivy gate had passed on this image because there was nothing to scan, so “green scan” didn’t mean “good image.” After restoring the COPY, the pipeline went green.
 
-## Part 5 - Written Section 
+## Part 5 - Written Section (Answers)
 
+1. Right now my format, build and test steps run one after another inside a single job, but they don’t depend on each other, so I would split format and test into parallel jobs: I’d gain faster feedback, since the run takes as long as the slowest job instead of the sum, and I’d see every failure in a single run. The image scan can’t run in parallel with the build, because it needs the built image, and I wouldn’t build an image that already failed format or tests, so the Docker job keeps needs: on the earlier jobs. The risk of running everything in parallel is wasted runner time when an early check fails and a harder-to-read pipeline when several jobs fail at once, and push and deploy would still have to wait for every gate.
+
+2. The only credential in this pipeline is the built-in GITHUB_TOKEN: I don’t store any secrets in the repo settings, because GitHub creates the token at the start of each job, it’s passed only to the GHCR login step, and it expires when the job ends. Its blast radius is limited twice: by its short life, and by my permissions: block, which gives it only contents: read and packages: write, so a token leaked into a log could only read this repo and push packages during that window. GitHub masks secrets in logs but only exact values, so I avoid printing or transforming it, and a long-lived personal token, which I deliberately didn’t use, would have been far worse. The only other variable is DOCKER_IMAGE in the workflow’s env:, which holds the image name and commit SHA, so it is configuration, not a secret, and is safe to keep in the file and show in logs.
+> [!NOTE]
+> Reference: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#env
+
+3. The gap would be the gate running only when someone pushes and a cached or old image keeps passing even after a fixed CVE appears.  We can close it triggering an `on: schedule` that rebuilds without the cache and and rescan. Also the usage of dependabot be helpful on this. (This steps are not implemented.) 
+> [!NOTE]
+> Reference: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/automate-dependabot-with-actions
+
+4. The smallest next step I can see is Docker Compose running three copies of the container on one host with nginx in front as a reverse proxy and load balancer. I’m still learning this area, but I understand that a Dockerfile only describes how to build a single image, so it can’t handle load balancing, updating without downtime, or sending traffic only to healthy copies, and Compose is what defines the copies and the proxy as services that talk to each other. 
+>[!NOTE]
+> References: https://docs.docker.com/reference/compose-file/services/ https://ecostack.dev/posts/load-balancing-docker-compose-replicas-using-nginx/
